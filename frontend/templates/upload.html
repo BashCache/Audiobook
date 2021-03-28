@@ -11,7 +11,12 @@
 <h1>AudioBook</h1>
 <form action="{{ url_for('upload') }}" method="POST" enctype="multipart/form-data">
     <input type="file" name="file" accept="image/*" multiple />
-    <input type="submit" value="Upload"/>
+    <select name="methods" id="denoise-methods">
+        <option value="median_filtering">Median Filtering</option>
+        <option value="adaptive_thresholding">Adaptive Thresholding</option>
+        <option value="autoencoders">Autoencoders</option>
+      </select>
+    <input type="submit" value="Denoise"> 
 </form>
 </body>
 </html>
