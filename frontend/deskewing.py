@@ -1,6 +1,14 @@
 import cv2
 import numpy as np
-# from skimage.transform import rotate, AffineTransform, warp
+
+def process_image_r(img):
+    img = np.asarray(img, dtype="float32")
+    img = cv2.resize(img, (540, 420))
+    # img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    img = img/255.0
+    img = np.reshape(img, (420, 540, 1))
+    
+    return img
 
 def rotate_img(img):
     
