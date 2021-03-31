@@ -6,17 +6,20 @@
           content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Upload Page</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
 <h1>AudioBook</h1>
+<div class="container">
 <form action="{{ url_for('upload') }}" method="POST" enctype="multipart/form-data">
-    <input type="file" name="file" accept="image/*" multiple />
-    <select name="methods" id="denoise-methods">
+    <input class="filesubmit" type="file" name="file" accept="image/*" multiple /><br><br><br><br>
+    <select class="dropdown" name="methods" id="denoise-methods">
         <option value="median_filtering">Median Filtering</option>
         <option value="adaptive_thresholding">Adaptive Thresholding</option>
         <option value="autoencoders">Autoencoders</option>
       </select>
-    <input type="submit" value="Denoise"> 
+    <input class="denoise" type="submit" value="Denoise">
 </form>
+    </div>
 </body>
 </html>
