@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <link rel="stylesheet" href="/static/style_finish.css">
+</head>
+<body>
+<h1> Denoised image uploaded for {{filename}} ! </h1>
+<form action="http://localhost:3000/ocr/{{filename}}" method="POST">
+    <input class="denoise" type="submit" value="OCR"> 
+</form>
+<!-- <h2> The Denoised Image </h2> -->
+<!-- <div class="container"> -->
+<!-- <img class="cleanedimg" src = {{denoised_image}} alt = "Clean image"> -->
+<!-- </div> -->
+</body>
+</html>
