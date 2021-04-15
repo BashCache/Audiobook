@@ -165,12 +165,12 @@ def spellchecker(filename):
 
 @app.route('/audio/<filename>', methods = ['POST'])
 def audio(filename):
-    # file_ptr_corrected = open(os.path.join(target_cleaned, filename, filename + "-corrected") + ".txt", "r")
-    # content = file_ptr_corrected.read()
+    file_ptr_corrected = open(os.path.join(target_cleaned, filename, filename + "-corrected") + ".txt", "r")
+    content = file_ptr_corrected.read()
 
-    # language = 'en'
-    # output = gTTS(text = content, lang = language)
-    # output.save(os.path.join(target_cleaned, filename, filename) + ".mp3")
+    language = 'en'
+    output = gTTS(text = content, lang = language)
+    output.save(os.path.join(target_cleaned, filename, filename) + ".mp3")
     return render_template("play-audio.html", filename = os.path.join("../static/cleaned-images", filename, filename) + ".mp3")
 
 
