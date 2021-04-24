@@ -8,4 +8,3 @@ def median_subtract(noisy_img):
     thresh = cv2.threshold(result, 0, 255, cv2.THRESH_BINARY | cv2.THRESH_OTSU)[1] 
     # 2nd parameter min threshold value, 3rd parameter - max threshold value, 4th param - binary as well as otsu
     return (thresh, background)
-
