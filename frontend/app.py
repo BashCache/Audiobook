@@ -4,7 +4,7 @@ import tensorflow as tf
 import cv2
 from tensorflow import keras
 from tensorflow.keras.models import Model, Sequential,load_model
-from deskewing import rotate_img, process_image_r
+from deskewing import rotate_img, process_image_r,process_image
 from median_filtering import median_subtract
 from adaptive_threshold import adaptive_thresholding
 import numpy as np
@@ -15,6 +15,7 @@ import pytesseract
 from pytesseract import Output
 import imutils
 from sort import natural_keys
+from click_and_crop import main_func, click_and_crop
 from PIL import Image
 import re
 from gtts import gTTS
@@ -47,6 +48,7 @@ def upload():
 
     print('form response: ', request.form["methods"])
     denoise_method = request.form["methods"]
+    genre = request.form["genre"]
     
     for file in request.files.getlist("file"):
         filename = file.filename
@@ -55,6 +57,7 @@ def upload():
         file.save(destination)
 
         name_of_file = filename.split(".")
+        type_of_file = name_of_file[1]
         print('only the filename', name_of_file)
 
         if not os.path.isdir(target+"/"+name_of_file[0]):
@@ -63,50 +66,122 @@ def upload():
         if not os.path.isdir(target_cleaned+"/"+name_of_file[0]):
             os.mkdir(target_cleaned+"/"+name_of_file[0])
 
-        type_of_file = name_of_file[1]
-        # if type_of_file == 'jpg' or type_of_file == 'jpeg' or type_of_file == 'png':
-        #     fname = filename
-        #     file.save(target+"/"+name_of_file[0]+"/"+fname, type_of_file)
+        if genre == "newspaper":        # newspaper can only be images
+            main_func(name_of_file[0], type_of_file, destination)
 
-        # print(images_1, type(images_1))
-        images = convert_from_path(destination, poppler_path=r'C:/Users/admin/Downloads/poppler-0.68.0_x86/poppler-0.68.0/bin')
-        print(type(images),images)
-        for i, image in enumerate(images):
-            fname = str(i) + "-" + name_of_file[0] + ".jpeg"
-            image.save(target+"/"+name_of_file[0]+"/"+fname, "JPEG")
+        elif type_of_file == 'jpg' or type_of_file == 'jpeg' or type_of_file == 'png':
+            fname = name_of_file[0] + "." + type_of_file
+            img = cv2.imread(destination)
+            cv2.imwrite(target + "/" + name_of_file[0] + "/" + filename, img)
+        #     if denoise_method == "median_filtering":
+        #         dirty_img = cv2.imread(target+"/"+name_of_file[0]+"/"+fname)
+        #         rotated =  rotate_img(dirty_img)
+        #         result, background = median_subtract(rotated)
+        #         cv2.imwrite( target_cleaned + "/" + name_of_file[0]+ "/" + "med-" + fname, result)
+            
+        #     elif denoise_method == "adaptive_thresholding":
+        #         dirty_img = cv2.imread(target+"/"+name_of_file[0]+"/"+fname)
+        #         rotated =  rotate_img(dirty_img)
+        #         result = adaptive_thresholding(rotated)
+        #         cv2.imwrite( target_cleaned + "/" + name_of_file[0]+ "/" + "adapt-" + fname, result)
 
-            if denoise_method == "median_filtering":
-                dirty_img = cv2.imread(target+"/"+name_of_file[0]+"/"+fname)
-                rotated =  rotate_img(dirty_img)
-                result, background = median_subtract(rotated)
-                cv2.imwrite( target_cleaned + "/" + name_of_file[0]+ "/" + "med-" + fname, result)
-                # return render_template("finish.html", denoised_image = target_cleaned + name_of_file[0]+ "/" + "med-" + fname)
+        #     elif denoise_method == "autoencoders":
+        #         # Rotate 
+        #         array_image = []
+        #         dirty_img = cv2.imread(target+"/"+name_of_file[0]+"/"+fname)
+        #         rotated =  rotate_img(dirty_img)
+        #         result = rotated   # without median
+        #         # result, background = median_subtract(rotated)  # with median
+        #         # Process
+        #         processed_image_list = process_image(result) # without median
+        #         # processed_image_list = process_image_r(result) # with median
+        #         processed_image_array = np.asarray(processed_image_list)
+        #         new_X = np.expand_dims(processed_image_array, axis=0)
+        #         print(processed_image_array.shape, new_X.shape)
+        #         # Model.predict
+        #         reconstructed_model = tf.keras.models.load_model('rms-final-model-200epochs')
+        #         res = reconstructed_model.predict(new_X)
+        #         plt.imsave( target_cleaned + "/" + name_of_file[0]+ "/" + "auto-" + fname, res[0][:,:,0], cmap='gray')
+        #         # cv2.imwrite( './static/cleaned-images/' + filename, res)
 
-            elif denoise_method == "adaptive_thresholding":
-                dirty_img = cv2.imread(target+"/"+name_of_file[0]+"/"+fname)
-                rotated =  rotate_img(dirty_img)
-                result = adaptive_thresholding(rotated)
-                cv2.imwrite( target_cleaned + "/" + name_of_file[0]+ "/" + "adapt-" + fname, result)
-                # return render_template("finish.html", denoised_image = target_cleaned + "/" + name_of_file[0]+ "/" + "adapt-" + fname)
+        # #     file.save(target+"/"+name_of_file[0]+"/"+fname, type_of_file)
 
-            elif denoise_method == "autoencoders":
-                # Rotate 
-                array_image = []
-                dirty_img = cv2.imread(target+"/"+name_of_file[0]+"/"+fname)
-                rotated =  rotate_img(dirty_img)
-                result, background = median_subtract(rotated)
-                # Process
-                processed_image_list = process_image_r(result)
-                processed_image_array = np.asarray(processed_image_list)
-                new_X = np.expand_dims(processed_image_array, axis=0)
-                print(processed_image_array.shape, new_X.shape)
-                # Model.predict
-                reconstructed_model = tf.keras.models.load_model('rms-final-model-200epochs')
-                res = reconstructed_model.predict(new_X)
-                plt.imsave( target_cleaned + "/" + name_of_file[0]+ "/" + "auto-" + fname, res[0][:,:,0], cmap='gray')
-                # cv2.imwrite( './static/cleaned-images/' + filename, res)
-                # return render_template("finish.html", denoised_image = target_cleaned + "/" + name_of_file[0]+ "/" + "auto-" + fname)
-    
+        # # print(images_1, type(images_1))
+        
+        elif type_of_file == 'pdf':
+            images = convert_from_path(destination, poppler_path=r'C:/Users/admin/Downloads/poppler-0.68.0_x86/poppler-0.68.0/bin')
+            print(type(images),images)
+            for i, image in enumerate(images):
+                fname = str(i) + "-" + name_of_file[0] + ".jpeg"
+                image.save(target+"/"+name_of_file[0]+"/"+fname, "JPEG")
+
+                # if denoise_method == "median_filtering":
+                #     dirty_img = cv2.imread(target+"/"+name_of_file[0]+"/"+fname)
+                #     rotated =  rotate_img(dirty_img)
+                #     result, background = median_subtract(rotated)
+                #     cv2.imwrite( target_cleaned + "/" + name_of_file[0]+ "/" + "med-" + fname, result)
+            
+                # elif denoise_method == "adaptive_thresholding":
+                #     dirty_img = cv2.imread(target+"/"+name_of_file[0]+"/"+fname)
+                #     rotated =  rotate_img(dirty_img)
+                #     result = adaptive_thresholding(rotated)
+                #     cv2.imwrite( target_cleaned + "/" + name_of_file[0]+ "/" + "adapt-" + fname, result)
+
+                # elif denoise_method == "autoencoders":
+                #     # Rotate 
+                #     array_image = []
+                #     dirty_img = cv2.imread(target+"/"+name_of_file[0]+"/"+fname)
+                #     rotated =  rotate_img(dirty_img)
+                #     result = rotated   # without median
+                #     # result, background = median_subtract(rotated)  # with median
+                #     # Process
+                #     processed_image_list = process_image(result) # without median
+                #     # processed_image_list = process_image_r(result) # with median
+                #     processed_image_array = np.asarray(processed_image_list)
+                #     new_X = np.expand_dims(processed_image_array, axis=0)
+                #     print(processed_image_array.shape, new_X.shape)
+                #     # Model.predict
+                #     reconstructed_model = tf.keras.models.load_model('rms-final-model-200epochs')
+                #     res = reconstructed_model.predict(new_X)
+                #     plt.imsave( target_cleaned + "/" + name_of_file[0]+ "/" + "auto-" + fname, res[0][:,:,0], cmap='gray')
+                # # cv2.imwrite( './static/cleaned-images/' + filename, res)
+
+    image_files = os.listdir(os.path.join(target, name_of_file[0]))
+    image_files.sort(key=natural_keys)
+    print(image_files)
+
+    for i in range(len(image_files)):
+        if denoise_method == "median_filtering":
+            dirty_img = cv2.imread(target+"/"+name_of_file[0]+"/"+image_files[i])
+            rotated =  rotate_img(dirty_img)
+            result, background = median_subtract(rotated)
+            cv2.imwrite( target_cleaned + "/" + name_of_file[0]+ "/" + "med-" + image_files[i], result)
+            
+        elif denoise_method == "adaptive_thresholding":
+            dirty_img = cv2.imread(target+"/"+name_of_file[0]+"/"+image_files[i])
+            rotated =  rotate_img(dirty_img)
+            result = adaptive_thresholding(rotated)
+            cv2.imwrite( target_cleaned + "/" + name_of_file[0]+ "/" + "adapt-" + image_files[i], result)
+
+        elif denoise_method == "autoencoders":
+            # Rotate 
+            array_image = []
+            dirty_img = cv2.imread(target+"/"+name_of_file[0]+"/"+image_files[i])
+            rotated =  rotate_img(dirty_img)
+            result = rotated   # without median
+            # result, background = median_subtract(rotated)  # with median
+            # Process
+            processed_image_list = process_image(result) # without median
+            # processed_image_list = process_image_r(result) # with median
+            processed_image_array = np.asarray(processed_image_list)
+            new_X = np.expand_dims(processed_image_array, axis=0)
+            print(processed_image_array.shape, new_X.shape)
+            # Model.predict
+            reconstructed_model = tf.keras.models.load_model('rms-final-model-200epochs')
+            res = reconstructed_model.predict(new_X)
+            plt.imsave( target_cleaned + "/" + name_of_file[0]+ "/" + "auto-" + image_files[i], res[0][:,:,0], cmap='gray')
+        # cv2.imwrite( './static/cleaned-images/' + filename, res)
+
     return render_template("denoise.html", filename = name_of_file[0])
 
 
