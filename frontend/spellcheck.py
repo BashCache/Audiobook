@@ -82,7 +82,7 @@ def getURL(words):
 
 # using enchant.checker.SpellChecker, identify basic incorrect words and get basic suggested replacements
 def basicSpellCheck(propernoun, email, url, words):
-  ignorewords = propernoun + email + url + ["!", ",", ".", "\"", "?", '(', ')', '*', '\'', '[', ']', '{', '}', '”', '“', '’' ,'‘' ,'¥' ,'©' ]
+  ignorewords = propernoun + email + url + ["!", "\"", '(', ')', '*', '\'', '[', ']', '{', '}', '”', '“', '’' ,'‘' ,'¥' ,'©' ]
   d = SpellChecker("en_US")
   incorrectwords = [w for w in words if len(w)>0 and not d.check(w) and w not in ignorewords]
   suggestedwords = [d.suggest(w) for w in incorrectwords]
