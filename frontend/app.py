@@ -182,11 +182,11 @@ def upload():
             plt.imsave( target_cleaned + "/" + name_of_file[0]+ "/" + "auto-" + image_files[i], res[0][:,:,0], cmap='gray')
         # cv2.imwrite( './static/cleaned-images/' + filename, res)
 
-    return render_template("denoise.html", filename = name_of_file[0])
+    return render_template("denoise.html", filename = name_of_file[0], genre = genre)
 
 
-@app.route('/ocr/<filename>', methods=['POST','GET'])
-def ocr(filename):
+@app.route('/ocr/<filename>+<genre>', methods=['POST','GET'])
+def ocr(filename, genre):
     pytesseract.pytesseract.tesseract_cmd = r'C:\\Program Files\\Tesseract-OCR\\tesseract.exe'
     print(pytesseract.get_tesseract_version())
     image_files = os.listdir(os.path.join(target_cleaned, filename))
@@ -198,18 +198,49 @@ def ocr(filename):
 
     for i in range(len(image_files)):
         print(image_files[i])
-        img = cv2.imread(image_files[i])
-        text = pytesseract.image_to_string((os.path.join(target_cleaned, filename, image_files[i])), lang='eng')
+        img = cv2.imread(os.path.join(target_cleaned, filename, image_files[i]))
+        newdata=pytesseract.image_to_osd(Image.open(os.path.join(target_cleaned, filename, image_files[i])), output_type=Output.DICT)
+        print(newdata, newdata['rotate'], type(newdata), newdata['orientation'])
+        # print(img)
+        img = imutils.rotate_bound(img, newdata['rotate'])
+        # angle=360-int(re.search('(?<=Rotate: )\d+', pytesseract.image_to_osd(Image.open(os.path.join(target_cleaned, filename, image_files[i])))).group(0))
+        # print('anglle is: ', angle)
+        # (h, w) = img.shape[:2]
+
+        # if center is None:
+        #     center = (w / 2, h / 2)
+        # # Perform the rotation
+        # M = cv2.getRotationMatrix2D(center, angle, scale)
+        # rotated = cv2.warpAffine(img, M, (w, h))
+        # cv2.imshow(img,"Properly rotated")
+        # rot_data = pytesseract.image_to_osd(Image.open(os.path.join(target_cleaned, filename, image_files[i])));
+        # print("[OSD] "+rot_data)
+        # rot = re.search('(?<=Rotate: )\d+', rot_data).group(0)
+        # angle = float(rot)
+        # print('angle rotated: ', angle)
+
+        # # Perform the rotation
+        # M = cv2.getRotationMatrix2D(center, angle, scale)
+        # rotated = cv2.warpAffine(img, M, (w, h))
+        # cv2.imshow(img,"Properly rotated")
+
+        # rotate the image to deskew it
+        # rotated = imutils.rotate_bound(Image.open(os.path.join(target_cleaned, filename, image_files[i])), angle) #added
+
+
+        # #  TODO: Rotated image can be saved here
+        # print(pytesseract.image_to_osd(rotated));
+        text = pytesseract.image_to_string(img, lang='eng')
         print(len(text))
         # print(text)
         file_ptr.write(text)
     
     file_ptr.close()
-    return render_template("spellcheck.html", filename = filename)
+    return render_template("spellcheck.html", filename = filename, genre = genre)
 
 
-@app.route('/spellchecker/<filename>', methods=['POST'])    
-def spellchecker(filename):
+@app.route('/spellchecker/<filename>+<genre>', methods=['POST'])    
+def spellchecker(filename, genre):
     file_ptr = open(os.path.join(target_cleaned, filename, filename) + ".txt", "r")
     text = file_ptr.read()
 
@@ -235,18 +266,21 @@ def spellchecker(filename):
     file_ptr_masked.close()
     file_ptr_corrected.close()
     # print(text)
-    return render_template("text-to-speech.html", filename = filename)
+    return render_template("text-to-speech.html", filename = filename, genre = genre)
 
 
-@app.route('/audio/<filename>', methods = ['POST'])
-def audio(filename):
-    file_ptr_corrected = open(os.path.join(target_cleaned, filename, filename + "-corrected") + ".txt", "r")
+@app.route('/audio/<filename>+<genre>', methods = ['POST'])
+def audio(filename, genre):
+    if genre == 'newspaper':
+        file_ptr_corrected = open(os.path.join(target_cleaned, filename, filename ) + ".txt", "r")
+    else:
+        file_ptr_corrected = open(os.path.join(target_cleaned, filename, filename + "-corrected") + ".txt", "r")
     content = file_ptr_corrected.read()
 
     language = 'en'
     output = gTTS(text = content, lang = language)
     output.save(os.path.join(target_cleaned, filename, filename) + ".mp3")
-    return render_template("play-audio.html", filename = os.path.join("../static/cleaned-images", filename, filename) + ".mp3")
+    return render_template("play-audio.html", filename = os.path.join("../static/cleaned-images", filename, filename) + ".mp3", genre = genre)
 
 
 if __name__ == "__main__":
