@@ -9,8 +9,8 @@
     <link rel="stylesheet" href="/static/style_finish.css">
 </head>
 <body>
-<h1> Text extracted for {{filename}} using OCR ! </h1>
-<form action="http://localhost:3000/spellchecker/{{filename}}" method="POST">
+<h1> Text extracted for {{filename}} using OCR ! {{genre}}</h1>
+<form action="http://localhost:3000/spellchecker/{{filename}}+{{genre}}" method="POST">
     <input class="denoise" type="submit" value="Spell Check"> 
 </form>
 </body>
