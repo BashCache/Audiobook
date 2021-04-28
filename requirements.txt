@@ -1,0 +1,5 @@
+tensorflow-gpu==2.4.1
+pdf2image
+keras
+pytesseract(version 4.1 and above v5)
+pyenchant
