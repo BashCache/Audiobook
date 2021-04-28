@@ -8,6 +8,7 @@ image = []
 
 def click_and_crop(event, x, y, flags, param):
     global refPt, cropping, image
+    # cv2.namedWindow("image", cv2.WINDOW_NORMAL) 
     if event == cv2.EVENT_LBUTTONDOWN:
         refPt = [(x, y)]
         cropping = True
@@ -24,12 +25,13 @@ def main_func(name_of_file, type_of_file, destination):
     APP_ROOT = os.path.dirname(os.path.abspath(__file__))
     target = os.path.join(APP_ROOT, 'static', 'user-upload')
     image = cv2.imread(destination)
-    print('type in click and crop', type(image))
-    image = cv2.resize(image, (540,420))
+    height, width = image.shape[:2]
+    print('type in click and crop', type(image), height, width)
+    image = cv2.resize(image, (width,height))
     image = np.array(image)
     print('type in click and crop', type(image))
     clone = image.copy()
-    cv2.namedWindow("image")
+    cv2.namedWindow("image", cv2.WINDOW_NORMAL)
     cv2.setMouseCallback("image", click_and_crop)
     count = 0
 
